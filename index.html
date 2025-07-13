@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><3</title>
+  <!-- Fontes Roboto e Playfair Display Black -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f0f0f5;
+      --accent: #3134f1;
+      --text: #333;
+      --book: #fff;
+      --back: #3134f1;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body {
+      background: var(--bg) url('estante.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Roboto', sans-serif;
+      padding: 2rem;
+      color: var(--text);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.5rem;
+    }
+    .shelf {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    .book {
+      width: 160px;
+      height: 240px;
+      position: relative;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .book-cover,
+    .book-inner,
+    .book-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      backface-visibility: hidden;
+      border-radius: 4px;
+      padding: 1rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .book-cover {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 500;
+      transform-origin: left center;
+    }
+    .book-inner {
+      background: var(--book);
+      color: var(--text);
+      font-size: 1rem;
+      transform: rotateY(180deg);
+      transform-origin: left center;
+      text-align: left;
+      visibility: hidden;
+    }
+    .book-back {
+      background: var(--back);
+      color: var(--text);
+      font-weight: 500;
+      transform: rotateY(180deg);
+      transform-origin: left center;
+      visibility: hidden;
+    }
+    .scroll-wrapper {
+      height: 100%;
+      overflow-y: auto;
+      padding-right: 1rem;
+    }
+    .scroll-wrapper::-webkit-scrollbar {
+      width: 8px;
+    }
+    .scroll-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      overflow: auto;
+    }
+    .active-book {
+      position: absolute;
+      z-index: 1001;
+      transform-style: preserve-3d;
+      width: 70vw;
+      max-width: 500px;
+      height: 90vh;
+      overflow: auto;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      z-index: 1002;
+    }
+    .nav-btn,
+    .zoom-btn,
+    .zoomout-btn {
+      position: fixed;
+      background: rgba(255,255,255,.8);
+      border: none;
+      font-size: 1.8rem;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      z-index: 1002;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .zoom-btn { bottom: 3.5rem; right: 1rem; }
+    .zoomout-btn { bottom: 1rem; right: 1rem; }
+
+    /* === RESPONSIVO === */
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      h1 { font-size: 2rem; margin-bottom: 1.5rem; }
+      .shelf { gap: 1rem; }
+      .book { width: 120px; height: 180px; }
+      .active-book {
+        width: 90vw;
+        max-width: none;
+        height: 85vh;
+      }
+      .nav-btn, .zoom-btn, .zoomout-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.4rem;
+      }
+    }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5rem; }
+      .book { width: 100px; height: 150px; }
+      .scroll-wrapper { padding-right: 0.5rem; }
+      .active-book {
+        width: 95vw;
+        height: 80vh;
+      }
+      .nav-btn { top: 45%; }
+      .zoom-btn, .zoomout-btn { right: 0.5rem; bottom: auto; top: auto; }
+      .zoom-btn { bottom: 2.5rem; }
+      .zoomout-btn { bottom: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>A Trilogia de Memórias</h1>
+  <div class="shelf">
+    <!-- Livro 1 -->
+    <div class="book" data-content="
+      <p>É muito interessante como a opinião humana pode mudar. Em uma fração de segundo, uma convicção enraizada pode se tornar algo completamente ilógico na nossa mente. Eu venho me sentindo assim com muitas coisas desde que te conheci. Uma delas é a rotina.</p>
+      <p>Sempre fui muito defensora da liberdade, de existir em vários ambientes e coexistir entre eles — mesmo que a rotina fosse, no geral, um ponto de conforto pra mim. Mas, quando se tratava de pessoas ou experiências, isso era muito diferente. Você sabe muito bem que eu nunca gostei de compromissos, de roteiros prontos, de mensagens de bom dia, de ter que dar satisfação, de descobrir os gostos das pessoas, de entendê-las. Eu nunca gostei de pessoas que me prendessem na monotonia da rotina — e relacionamentos remetiam à parte chata da rotina pra mim.</p>
+      <p>Depois de um tempo, eu me dei conta de como eu amo viver a rotina. Eu só precisava conhecer ela com você.</p>
+      <p>Agora eu amo mandar mensagens de bom dia. Amo ficar ansiosa pra descobrir mais sobre você. Amo falar repetidas vezes as mesmas frases que dizem muito sobre como eu te amo. Amo te girar do nada. Amo segurar seu cabelo e te agarrar pela cintura todas as vezes que eu vou te beijar. Eu amo a rotina de amar você. É como se tudo fosse igual, mas diferente. Sempre diferente.</p>
+      <p>Eu me dei conta de que realmente amo isso quando nós saímos pra jantar no nosso aniversário de 1 ano de namoro. Mesmo que pareça controverso pelo fato de nunca termos saído pra jantar até então, eu me vi querendo aquilo todos os dias da semana. Todos os dias da minha vida. Eu me vi querendo te enxergar linda e envergonhada saindo do banheiro pra me surpreender com o seu vestido. Eu me vi visceralmente louca pra viver todos aqueles mínimos momentos com você de novo. E pra sempre.</p>
+      <p>Foi assim que eu mudei minha visão sobre a rotina.<br/>
+      Eu torço pra que todos os nossos momentos sejam, pra sempre, a nossa rotina.<br/>
+      Te amar é a minha escolha de rotina favorita.</p>
+    ">
+      <div class="book-cover">A rotina.</div>
+      <div class="book-inner"></div>
+      <div class="book-back"></div>
+    </div>
+
+    <!-- Livro 2 -->
+      <div class="book" data-content="
+      <p>Sabe quando a vida para?<br/>
+      Não no sentido sádico e trágico, onde você paralisa em desespero e, por um momento, acredita que nunca mais vai conseguir voltar ao estado de paz. Me refiro àqueles momentos em que o tempo, em toda a sua soberba, parece abrir exceções e fazer com que certos instantes transcendam as métricas conhecidas por nós, meros mortais, de como conceber o tempo.</p>
+      <p>Momentos como esse sempre foram raros pra mim, diante da correria da minha vida e da forma como o meu cérebro é acelerado. Isso realmente me torna um desafio e tanto pro tempo. Eu não sou um bom exemplo de como desacelerar.</p>
+      <p>O ponto é que eu me senti assim no arraiá com você.<br/>
+      Quando nós dançamos juntas, foi como se tudo ao redor se calasse, e eu conseguisse apenas ouvir a nossa respiração e a melodia dos nossos corações ressoando de forma síncrona. Eu apenas queria que aquilo durasse pra sempre — que eu pudesse viver pra sempre sentindo o seu cheiro, o calor do seu corpo, a sensação dos meus dedos tocando o seu ombro, o toque do seu cabelo no meu rosto. Tudo.</p>
+      <p>Eu nunca acreditei em antídotos para os meus problemas de aceleração, mas estar com você parece curar tudo. Calar tudo.<br/>
+      Dançar com você foi como sentir uma enxurrada de sedativos invadirem todas as partes de mim.</p>
+      <p>Eu disse uma vez que precisava tomar algo alcoólico pra conseguir me soltar em festas e dançar.<br/>
+      Você me fez mudar essa concepção.<br/>
+      Eu precisava apenas me embriagar do nosso amor.<br/>
+      Eu precisava da coragem que existir com você me dá.<br/>
+      Eu precisava do avivamento que estar na sua presença me traz.</p>
+      <p>Esse momento foi um ponto de entendimento pra mim:<br/>
+      De que eu quero viver dançando pela vida todos os dias com você.<br/>
+      De que nada causa efeitos curativos maiores em mim do que ter você comigo.</p>
+      <p>Dançar com você fez isso comigo.<br/>
+      Assim como dançar pela vida com você também faz.</p>
+      <p>Eu guardo essa memória com muito carinho, porque ela foi a prova de que o tempo pode ser gentil. Que ele foi gentil comigo por ter me deixado te encontrar tão cedo, e por sempre parar tudo quando estamos juntas.</p>
+      <p>Eu não me sinto mais refém do tempo desde que te conheci.<br/>
+      Eu me sinto amiga dele.</p>
+    ">
+      <div class="book-cover">A dança.</div>
+      <div class="book-inner"></div>
+      <div class="book-back"></div>
+    </div>
+
+    <!-- Livro 3 -->
+    <div class="book" data-content="
+      <p>Sempre achei aniversários muito legais.<br/>
+      Adoro o rito sem sentido de cantar parabéns pra uma pessoa enquanto ela aguarda atrás de um bolo com velas para soprá-las. É legal demais ver pessoas que amamos se sentindo realizadas, queridas e felizes com as outras fazendo questão de prestigiá-las.<br/>
+      Tudo isso sempre foi muito bonito e fantasioso pra mim.<br/>
+      Até chegar o meu aniversário.</p>
+      <p>Eu sempre tive aversão a comemorar algo que eu nunca quis ter ou prolongar.<br/>
+      Até que eu aprendi a viver — e a ver beleza na vida em si.</p>
+      <p>Ainda assim, a autocobrança excessiva e os meus demônios sempre me faziam ter um pé atrás com a minha data, por questões de insatisfação.<br/>
+      Desde que eu te conheci, isso foi mudando aos poucos.</p>
+      <p>Com você, eu aprendi a olhar as coisas com mais calma.<br/>
+      Aprendi a viver a dois e não sozinha.<br/>
+      Aprendi a me abrir mais, a compartilhar, a ver as coisas boas da existência e o que há de bom em mim.</p>
+      <p>Foi por conta de todas essas metamorfoses que você me ajudou a passar que eu aprendi a acolher o meu aniversário — e a gostar dele.<br/>
+      E eu não poderia jamais agradecer o suficiente por isso.</p>
+      <p>Ter decidido comemorar meu aniversário me deu memórias que jamais serão apagadas da minha mente.<br/>
+      Memórias que me enchem de amor todas as vezes que eu lembro delas.</p>
+      <p>Todas as vezes que eu lembro de você interagindo com as pessoas que eu amo.<br/>
+      Você se dando bem com elas.<br/>
+      Você sorrindo a cada minutinho ao me olhar.<br/>
+      As risadas que demos juntas na pizzaria.<br/>
+      O fato de você ter se envolvido em uma surpresa pra mim.<br/>
+      Você ter vindo pra minha casa apenas pra estarmos agarradas, conversando besteira e ocasionalmente nos beijando.</p>
+      <p>Todas as vezes que penso nesses momentos, eu amo junho um pouco mais.<br/>
+      Você ressignificou o sentido de “aniversário” pra mim.</p>
+      <p>Eu entendi que aniversários são sobre deixar que as pessoas nos amem.<br/>
+      Sobre permitir que elas se sintam bem em nos amar.<br/>
+      Eu entendi que eu mereço amor. Que eu mereço atenção.<br/>
+      E que me amar não é difícil — porque você me mostra isso o tempo inteiro.</p>
+      <p>E foi aí que eu me dei conta:<br/>
+      Eu quero estar com você em todas as comemorações possíveis.<br/>
+      Quero tornar tudo uma grande festa, porque tudo é motivo de comemoração.<br/>
+      Tudo é um aniversário com a gente.</p>
+      <p>O nosso relacionamento é regado à base da tranquilidade festiva no contentamento de termos uma à outra.<br/>
+      Eu quero ter você o tempo inteiro.<br/>
+      Quero te ver boba interagindo com quem eu amo.<br/>
+      Quero amar você em voz alta.<br/>
+      E quero ressaltar o tempo inteiro o quanto eu agradeço pela sua vida — e pela forma como a sua existência transforma a minha e dá vida à minha vida.</p>
+      <p>Você deu vida à minha vida.<br/>
+      E, consequentemente, me ajudou a dar vida ao meu aniversário e às pequenas coisas.</p>
+      <p>Eu guardo essa memória com muito carinho, porque me senti renascer.<br/>
+      E isso tem muito dedo seu.<br/>
+      O seu amor é a Vida da minha vida.</p>
+    ">
+      <div class="book-cover">A Vida da minha vida.</div>
+      <div class="book-inner"></div>
+      <div class="book-back"></div>
+    </div>
+  </div>
+
+  <div class="overlay"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+  <script>
+    const books = document.querySelectorAll('.book');
+    const overlay = document.querySelector('.overlay');
+    let activeClone, prevBtn, nextBtn, zoomBtn, zoomOutBtn;
+    const baseScale = 1, zoomScale = 1.1111111;
+
+    function openBook(book) {
+      const clone = book.cloneNode(true);
+      clone.classList.add('active-book');
+      document.body.appendChild(clone);
+
+      const cover = clone.querySelector('.book-cover');
+      const inner = clone.querySelector('.book-inner');
+      const back = clone.querySelector('.book-back');
+      inner.innerHTML = `<div class="scroll-wrapper">${book.dataset.content}</div>`;
+
+      const scrollWrapper = inner.querySelector('.scroll-wrapper');
+      scrollWrapper.addEventListener('wheel', e => e.stopPropagation());
+
+      gsap.set(cover, { rotationY: 0, visibility: 'visible' });
+      gsap.set(inner, { rotationY: 180, visibility: 'hidden' });
+      gsap.set(back, { rotationY: 180, visibility: 'hidden' });
+
+      clone.flipState = 0;
+      activeClone = clone;
+      overlay.style.display = 'flex';
+      overlay.appendChild(clone);
+      addNavControls();
+    }
+
+    function addNavControls() {
+      prevBtn = document.createElement('button'); prevBtn.className = 'nav-btn'; prevBtn.innerText = '<';
+      nextBtn = document.createElement('button'); nextBtn.className = 'nav-btn'; nextBtn.innerText = '>';
+      zoomBtn = document.createElement('button'); zoomBtn.className = 'zoom-btn'; zoomBtn.innerText = '+';
+      zoomOutBtn = document.createElement('button'); zoomOutBtn.className = 'zoomout-btn'; zoomOutBtn.innerText = '-';
+
+      overlay.append(prevBtn, nextBtn, zoomBtn, zoomOutBtn);
+      prevBtn.style.left = '2rem'; prevBtn.style.top = '50%';
+      nextBtn.style.right = '2rem'; nextBtn.style.top = '50%';
+
+      zoomBtn.addEventListener('click', () => gsap.to(activeClone, { duration: 0.4, scale: zoomScale }));
+      zoomOutBtn.addEventListener('click', () => gsap.to(activeClone, { duration: 0.4, scale: baseScale }));
+      nextBtn.addEventListener('click', flipForward);
+      prevBtn.addEventListener('click', flipBackward);
+
+      const close = document.createElement('button');
+      close.className = 'close-btn';
+      close.innerHTML = '&times;';
+      close.onclick = closeBook;
+      activeClone.appendChild(close);
+    }
+
+    function flipForward() {
+      const cover = activeClone.querySelector('.book-cover');
+      const inner = activeClone.querySelector('.book-inner');
+      const back = activeClone.querySelector('.book-back');
+      if (activeClone.flipState === 0) {
+        gsap.to(cover, { duration: 0.4, rotationY: -180 });
+        gsap.to(inner, { duration: 0.4, rotationY: 0, delay: 0.3, onStart: () => inner.style.visibility = 'visible' });
+        activeClone.flipState = 1;
+      } else if (activeClone.flipState === 1) {
+        gsap.to(inner, { duration: 0.4, rotationY: -180 });
+        gsap.to(back, { duration: 0.4, rotationY: 0, delay: 0.3, onStart: () => back.style.visibility = 'visible' });
+        activeClone.flipState = 2;
+      }
+    }
+
+    function flipBackward() {
+      const cover = activeClone.querySelector('.book-cover');
+      const inner = activeClone.querySelector('.book-inner');
+      const back = activeClone.querySelector('.book-back');
+      if (activeClone.flipState === 2) {
+        gsap.to(back, { duration: 0.4, rotationY: 180 });
+        gsap.to(inner, { duration: 0.4, rotationY: 0, delay: 0.3, onStart: () => inner.style.visibility = 'visible' });
+        activeClone.flipState = 1;
+      } else if (activeClone.flipState === 1) {
+        gsap.to(inner, { duration: 0.4, rotationY: 180 });
+        gsap.to(cover, { duration: 0.4, rotationY: 0, delay: 0.3, onStart: () => cover.style.visibility = 'visible' });
+        activeClone.flipState = 0;
+      }
+    }
+
+    function closeBook() {
+      [prevBtn, nextBtn, zoomBtn, zoomOutBtn].forEach(b => b && b.remove());
+      overlay.style.display = 'none';
+      activeClone.remove();
+      activeClone = null;
+    }
+
+    books.forEach(b => b.addEventListener('click', () => openBook(b)));
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeBook(); });
+  </script>
+</body>
+</html>
